@@ -488,3 +488,19 @@ Caso seja necessário enviar dinâmicamente listeners para um componente base, p
 ```
 
 Com isto, todos os listeners adicionados ao component (click, submit, etc) serão adicionados a tag button
+
+## Form Validation with Vuelidate
+
+Normalmente ao utilizar a biblioteca, registramos ela para usar globalmente
+
+```js
+import Vuelidate from "vuelidate";
+
+Vue.use(Vuelidate);
+```
+
+Para dizer que um campo foi mechido (dirty), utilizamos o comando abaixo:
+
+```html
+<input @blur="$v.email.$touch()" />
+```
