@@ -477,3 +477,14 @@ E adicionamos o seguinte atributo na tag para adicionar no local onde queremos:
 ```html
 <div v-bind="$attrs"></div>
 ```
+
+OBS: **\$attrs** não funciona para classes e atributos de styling, então é preciso utilizar props caso queira passas essas informações a um componente
+OBS2: Na versão 3 do Vue o **\$attrs** irá passar classes e styling tambem
+
+Caso seja necessário enviar dinâmicamente listeners para um componente base, podemos usar a seguinte sintaxe:
+
+```html
+<button v-on="$listeners">Botão</button>
+```
+
+Com isto, todos os listeners adicionados ao component (click, submit, etc) serão adicionados a tag button
