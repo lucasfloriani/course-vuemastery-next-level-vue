@@ -159,3 +159,294 @@ export default {
   // methods: mapActions('event', ['fetchEvent'])
 }
 ```
+
+## Global and Per-Route Guards
+
+Ultima solução a ser vista (e escolhida).
+
+Existem mais 2 **Global Routing Guards** que devemos conhecer, mas para utilizarmos eles, devemos adicionar algumas configurações
+
+```js
+Vue.use(Router)
+// Guards são chamados no objeto router
+// pois são chamados usando router.nomeDoGuard()
+const router = new Router({ ... })
+```
+
+Os novos life cycles são
+
+```js
+// Roda antes de navegar a um componente
+// Precisar chamar next()
+router.beforeEach(routeTo, routeFrom, next);
+// Roda já depois do componente ser criado
+// Não precisar chamar next()
+router.afterEach(routeTo, routeFrom, next);
+```
+
+A order deles serem chamados é a seguinte:
+
+```js
+beforeEach();
+beforeEnter();
+beforeRouteEnter();
+afterEach();
+beforeCreate();
+created();
+// Outros components life cycles
+```
+
+### Implementação
+
+```js
+// router.js
+import Vue from "vue";
+import Router from "vue-router";
+import EventCreate from "./views/EventCreate.vue";
+import EventList from "./views/EventList.vue";
+import EventShow from "./views/EventShow.vue";
+import NProgress from "nprogress";
+import store from "@/store/store";
+
+Vue.use(Router);
+
+const router = new Router({
+  mode: "history",
+  routes: [
+    {
+      path: "/",
+      name: "event-list",
+      component: EventList
+    },
+    {
+      path: "/event/create",
+      name: "event-create",
+      component: EventCreate
+    },
+    {
+      path: "/event/:id",
+      name: "event-show",
+      component: EventShow,
+      props: true,
+      beforeEnter(routeTo, routeFrom, next) {
+        store.dispatch("event/fetchEvent", routeTo.params.id).then(() => {
+          next();
+        });
+      }
+    }
+  ]
+});
+
+router.beforeEach((routeTo, routeFrom, next) => {
+  NProgress.start();
+  next();
+});
+router.afterEach(() => {
+  NProgress.done();
+});
+
+export default router;
+```
+
+```js
+// event.js
+fetchEvent({ commit, getters, dispatch }, id) {
+  var event = getters.getEventById(id)
+
+  if (event) {
+    commit('SET_EVENT', event)
+  } else {
+    return EventService.getEvent(id)
+      .then(response => {
+        commit('SET_EVENT', response.data)
+      })
+      .catch(error => {
+        const notification = {
+          type: 'error',
+          message: 'There was a problem fetching event: ' + error.message
+        }
+        dispatch('notification/add', notification, { root: true })
+      })
+  }
+}
+```
+
+```js
+// EventShow.vue
+//
+// Chamadas estão sendo realizadas no router
+// então o componente nao precisa fazer mais
+// import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
+
+export default {
+  props: ["id"],
+  // created() {
+  //   this.fetchEvent(this.id)
+  // },
+  computed: mapState({
+    event: state => state.event.event
+  })
+  // methods: mapActions('event', ['fetchEvent'])
+};
+```
+
+Ao utilizar este modo, todo código relacionado ao Vuex agora está fora do componente, sendo mantido agora no arquivo de rotas. Com isto, podemos remover o Vuex do componente passando o valor como uma prop ao componente.
+
+```html
+<!-- EventShow.vue -->
+<template>
+  <div>
+    <div class="event-header">
+      <span class="eyebrow">@{{ event.time }} on {{ event.date }}</span>
+      <h1 class="title">{{ event.title }}</h1>
+      <h5>Organized by {{ event.organizer ? event.organizer.name : '' }}</h5>
+      <h5>Category: {{ event.category }}</h5>
+    </div>
+
+    <BaseIcon name="map">
+      <h2>Location</h2>
+    </BaseIcon>
+
+    <address>{{ event.location }}</address>
+
+    <h2>Event details</h2>
+    <p>{{ event.description }}</p>
+
+    <h2>
+      Attendees
+      <span class="badge -fill-gradient"
+        >{{ event.attendees ? event.attendees.length : 0 }}</span
+      >
+    </h2>
+    <ul class="list-group">
+      <li
+        v-for="(attendee, index) in event.attendees"
+        :key="index"
+        class="list-item"
+      >
+        <b>{{ attendee.name }}</b>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+  // import { mapState } from 'vuex'
+
+  export default {
+    props: {
+      event: {
+        type: Object,
+        required: true
+      }
+    }
+    // computed: mapState({
+    //   event: state => state.event.event
+    // })
+  };
+</script>
+
+<style scoped>
+  .location {
+    margin-bottom: 0;
+  }
+  .location > .icon {
+    margin-left: 10px;
+  }
+  .event-header > .title {
+    margin: 0;
+  }
+  .list-group {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .list-group > .list-item {
+    padding: 1em 0;
+    border-bottom: solid 1px #e5e5e5;
+  }
+</style>
+```
+
+```js
+// router.js
+import Vue from "vue";
+import Router from "vue-router";
+import EventCreate from "./views/EventCreate.vue";
+import EventList from "./views/EventList.vue";
+import EventShow from "./views/EventShow.vue";
+import NProgress from "nprogress";
+import store from "@/store/store";
+
+Vue.use(Router);
+
+const router = new Router({
+  mode: "history",
+  routes: [
+    {
+      path: "/",
+      name: "event-list",
+      component: EventList
+    },
+    {
+      path: "/event/create",
+      name: "event-create",
+      component: EventCreate
+    },
+    {
+      path: "/event/:id",
+      name: "event-show",
+      component: EventShow,
+      props: true,
+      // Por ter props true podemos enviar
+      // o resultado da action como props
+      beforeEnter(routeTo, routeFrom, next) {
+        store.dispatch("event/fetchEvent", routeTo.params.id).then(event => {
+          routeTo.params.event = event;
+          next();
+        });
+      }
+    }
+  ]
+});
+
+router.beforeEach((routeTo, routeFrom, next) => {
+  NProgress.start();
+  next();
+});
+router.afterEach(() => {
+  NProgress.done();
+});
+
+export default router;
+```
+
+```js
+// event.js
+fetchEvent({ commit, getters, dispatch }, id) {
+  var event = getters.getEventById(id)
+
+  if (event) {
+    commit('SET_EVENT', event)
+    // Retornar o evento da action
+    return event
+  } else {
+    return EventService.getEvent(id)
+      .then(response => {
+        commit('SET_EVENT', response.data)
+        // Retornar o evento da action
+        return response.data
+      })
+      .catch(error => {
+        const notification = {
+          type: 'error',
+          message: 'There was a problem fetching event: ' + error.message
+        }
+        dispatch('notification/add', notification, { root: true })
+      })
+  }
+}
+```
+
+Com isto concluimos as alterações para tirar a dependencia Vuex do componente EventShow
