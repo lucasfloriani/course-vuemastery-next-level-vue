@@ -646,3 +646,51 @@ Vue.mixin({
   }
 });
 ```
+
+## Filters
+
+Usado em casos onde os dados que temos no momento não são "human readable", assim utilizando filters nos podemos resolver este problema
+
+Por exemplo:
+
+```js
+// Usado ao lado do dado que queremos alterar
+// parecido com linha de comando pipe
+<template>
+  <p>{{ comment | reply('bro') | shout | exclaim }}</p>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      comment: 'no one cares'
+    }
+  },
+  filters: {
+    shout(value) {
+      return value.toUpperCase()
+    },
+    exclaim(value) {
+      return value + '!!!'
+    },
+    reply(value, name) {
+      return value + ', ' + name
+    }
+  }
+}
+</script>
+```
+
+Filters podem ser utilizados dentro de diretivas como **v-bind**
+
+Podemos adicionar um filter como global com a seguinte sintaxe:
+
+```js
+Vue.filter("nomeDoFilter", FilterFunction);
+```
+
+### Quando usar Filters
+
+Com base no pessoal do time core do Vue, em muitos dos casos a criação de **methods** ou **computed properties** são geralmente a melhor escolha, ainda mais que as **computed properties** fazem cache do valor, ganhando assim em performance
+Outro detalhe é que a syntax de pipe trabalha diferente da proposta de pipe apresentada ao Javascript, podendo futuramente ter 2 tipos diferentes de códigos com pipe.
