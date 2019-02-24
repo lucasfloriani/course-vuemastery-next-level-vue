@@ -450,3 +450,30 @@ fetchEvent({ commit, getters, dispatch }, id) {
 ```
 
 Com isto concluimos as alterações para tirar a dependencia Vuex do componente EventShow
+
+## Base components
+
+Como funciona a diretiva v-model
+
+```js
+// v-model="event.title"
+:value="event.title"
+@input="(value) => { event.title = value }"
+```
+
+Quando passamos parâmetros html para um componente, ele será adicinado automaticamente na tag root deste componente.
+Os atributos que podem acontecer isto por exemplo são type e placeholder.
+
+Para receber os atributos em outro lugar, usamos o seguinte comando no componente:
+
+```js
+export default {
+  inheritAttrs: false
+};
+```
+
+E adicionamos o seguinte atributo na tag para adicionar no local onde queremos:
+
+```html
+<div v-bind="$attrs"></div>
+```
