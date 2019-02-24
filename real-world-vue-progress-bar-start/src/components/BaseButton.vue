@@ -1,7 +1,7 @@
 <template>
   <div>
     <button v-on="$listeners" v-bind="$attrs" class="button" :class="buttonClass">
-      <slot></slot>
+      <slot/>
     </button>
   </div>
 </template>
@@ -45,18 +45,17 @@ export default {
 .button:focus {
   outline: 0;
 }
-.button.-fill-gradient {
-  background: linear-gradient(to right, #16c0b0, #84cf6a);
-  color: #ffffff;
-}
 .button:disabled {
   -webkit-transform: scale(1);
   transform: scale(1);
   box-shadow: none;
-  background: #eeeeee;
 }
 .button + .button {
   margin-left: 1em;
+}
+.button.-fill-gradient {
+  background: linear-gradient(to right, #16c0b0, #84cf6a);
+  color: #ffffff;
 }
 .button.-fill-gray {
   background: rgba(0, 0, 0, 0.5);

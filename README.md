@@ -504,3 +504,145 @@ Para dizer que um campo foi mechido (dirty), utilizamos o comando abaixo:
 ```html
 <input @blur="$v.email.$touch()" />
 ```
+
+## Mixins
+
+Ferramenta usada para reaproveitamento de código, encapsulando ele.
+
+Por exemplo quando em nossa aplicação existem 2 componentes com funcionalidades similares, ao inves de mante-los separados ou juntá-los, nós utilizamos mixins.
+
+Por Exemplo:
+
+```js
+export const exampleMixin = {
+  created() {
+    console.log("Hello from the mixin!");
+  }
+};
+```
+
+```js
+import { exampleMixin } from '../mixins/exampleMixin.js
+export default {
+  mixins: [exampleMixin]
+}
+```
+
+Com este mixin, o componente agora conterá o life cycle **created()**
+
+A ordem de operação dos mixins rodam antes do código do componente
+
+```js
+export const exampleMixin = {
+  created() {
+    console.log("Hello from the mixin!");
+  }
+};
+```
+
+```js
+import { exampleMixin } from '../mixins/exampleMixin.js
+export default {
+  mixins: [exampleMixin],
+  created() {
+    console.log('Hey from the component.')
+  }
+}
+```
+
+Se for verificado no console, podemos ver que a ordem aparece a seguinte:
+
+```text
+Hello from the mixin!
+Hey from the component.
+```
+
+Com mixins nós podemos adicionar mais funcionalidades, segue a baixo o exemplo:
+
+```js
+export const exampleMixin = {
+  created() {
+    this.logMessage();
+  },
+  data() {
+    return {
+      message: "I am such a nice mixin."
+    };
+  },
+  methods: {
+    logMessage() {
+      console.log(this.message);
+    }
+  }
+};
+```
+
+O que acontece caso o nome de um dos dados do mixin ser o mesmo que o do componente?
+
+```js
+export const exampleMixin = {
+  data() {
+    return {
+      message: "I am secondary."
+    };
+  }
+};
+```
+
+```js
+import { exampleMixin } from "../mixins/exampleMixin.js";
+export default {
+  mixins: [exampleMixin],
+  data() {
+    return {
+      message: "I take priority."
+    };
+  },
+  created() {
+    console.log(this.message);
+  }
+};
+```
+
+Colocará no console na seguinte ordem
+
+```text
+I take priority.
+```
+
+Ou seja se tiver conflito entre valores do data, o **componente ganha**
+
+E quando tiver conflito de propriedades de objetos o **componente ganha**
+
+```js
+export const exampleMixin = {
+  methods: {
+    hello() {
+      console.log("Hello from the mixin!");
+    }
+  }
+};
+```
+
+```js
+import { exampleMixin } from "../mixins/exampleMixin.js";
+export default {
+  mixins: [exampleMixin],
+  methods: {
+    hello() {
+      // loga este
+      console.log("Hello from the component.");
+    }
+  }
+};
+```
+
+Podemos adicionar mixins globais que serão executados em todos os componentes com a seguinte sintaxe, porem é altamente não recomendado
+
+```js
+Vue.mixin({
+  mounted() {
+    console.log("I am mixed into every component.");
+  }
+});
+```

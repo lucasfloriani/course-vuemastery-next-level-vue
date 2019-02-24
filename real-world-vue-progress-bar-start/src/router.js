@@ -3,11 +3,10 @@ import Router from 'vue-router'
 import EventCreate from './views/EventCreate.vue'
 import EventList from './views/EventList.vue'
 import EventShow from './views/EventShow.vue'
-import Example from './views/Example.vue'
-import NetworkIssue from './views/NetworkIssue.vue'
-import NotFound from './views/NotFound.vue'
 import NProgress from 'nprogress'
 import store from '@/store/store'
+import NotFound from './views/NotFound.vue'
+import NetworkIssue from './views/NetworkIssue.vue'
 
 Vue.use(Router)
 
@@ -19,10 +18,6 @@ const router = new Router({
       name: 'event-list',
       component: EventList,
       props: true
-    },
-    {
-      path: '/example',
-      component: Example
     },
     {
       path: '/event/create',
@@ -42,7 +37,7 @@ const router = new Router({
             next()
           })
           .catch(error => {
-            if (error.response && error.response.status === 404) {
+            if (error.response && error.response.status == 404) {
               next({ name: '404', params: { resource: 'event' } })
             } else {
               next({ name: 'network-issue' })
